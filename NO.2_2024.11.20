@@ -1,0 +1,34 @@
+#include "stm32f10x.h"                  // Device header
+#include "Delay.h"
+#define PERIPH_BASE           ((uint32_t)0x40000000) /*!< Peripheral base address in the alias region */
+#define APB2PERIPH_BASE       (PERIPH_BASE + 0x10000)
+#define GPIOB_BASE            (APB2PERIPH_BASE + 0x0C00)
+
+/* GPIOB 寄存器地址,强制转换成指针 */
+#define GPIOB_CRL 		*(unsigned int*)(GPIOB_BASE+0x00)
+#define GPIOB_ODR 		*(unsigned int*)(GPIOB_BASE+0x0C)
+	
+/*RCC 外设基地址*/
+#define RCC_BASE 		(AHBPERIPH_BASE + 0x1000)
+/*RCC 的 AHB1 时钟使能寄存器地址,强制转换成指针*/
+#define RCC_APB2ENR 	*(unsigned int*)(RCC_BASE+0x18)
+
+int main(void)
+{
+	/*开启时钟*/
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	//开启GPIOB的时钟
+	RCC_APB2ENR |= (1<<3);												
+	GPIOB_CRL &= ~(0x0F<<(4*0));// 清空控制 PB0 的端口位
+	GPIOB_CRL |= (1<<4*0);// 配置 PB0 为通用推挽输出，速度为 10M
+	// PB0 输出低电平
+    GPIOB_ODR &= ~(1<<0);
+
+	while (1)
+	{
+		GPIOB_ODR &= ~(1 << 0); // LED关
+        Delay_ms(100);         // 延时
+        GPIOB_ODR |= (1 << 0);  // LED开
+        Delay_ms(100);             // 延时
+
+	}
+}
